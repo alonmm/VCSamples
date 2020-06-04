@@ -13,7 +13,7 @@
 #include "Page5.h"
 
 #include <memory>
-
+#include <tuple>
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -66,7 +66,9 @@ void CPage5::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_PROPLIST_CATEGORIZED2, m_bShowDragContext);
 	DDX_Check(pDX, IDC_MARK_CHANGED, m_bMarkChanged);
 	DDX_Check(pDX, IDC_HIDE_FONT_PROPS, m_bHideFontProps);
+	DDX_Control(pDX, IDC_EDIT_SEARCH_PROP, m_editSearchProp);
 }
+#define WM_ON_SEARCH_PROPRTY_RECEIVED (WM_USER + 10)
 
 BEGIN_MESSAGE_MAP(CPage5, CMFCPropertyPage)
 	ON_BN_CLICKED(IDC_HEADER, OnHeader)
@@ -82,6 +84,12 @@ BEGIN_MESSAGE_MAP(CPage5, CMFCPropertyPage)
 	ON_BN_CLICKED(IDC_RESET_VALUES, OnResetValues)
 	ON_BN_CLICKED(IDC_MARK_CHANGED, OnMarkChanged)
 	ON_BN_CLICKED(IDC_HIDE_FONT_PROPS, OnHideFontProps)
+	ON_REGISTERED_MESSAGE(AFX_WM_PROPERTY_CHANGED, OnPropertyChanged)
+	ON_MESSAGE(WM_ON_SEARCH_PROPRTY_RECEIVED, &CPage5::OnSearchProprtyReceived)
+	//ON_MESSAGE(WM_ENAC_UPDATE, OnChangeEdit)
+	//ON_MESSAGE(WM_ENTER_IN_EDIT, OnEnterInEdit)
+	ON_EN_CHANGE(IDC_EDIT_SEARCH_PROP, &CPage5::OnEnChangeEditSearchProp)
+	ON_EN_UPDATE(IDC_EDIT_SEARCH_PROP, &CPage5::OnEnUpdateEditSearchProp)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -136,6 +144,7 @@ BOOL CPage5::OnInitDialog()
 	std::auto_ptr<CMFCPropertyGridProperty> apGroup1(new CMFCPropertyGridProperty(_T("Appearance")));
 
 	COleVariant var3DLook((short)VARIANT_FALSE, VT_BOOL);
+	
 	apGroup1->AddSubItem(new CMFCPropertyGridProperty(_T("3D Look"), var3DLook, _T("Specifies the dialog's font will be nonbold and controls will have a 3D border")));
 
 	CMFCPropertyGridProperty* pProp = new CMFCPropertyGridProperty(_T("Border"), _T("Dialog Frame"), _T("One of: None, Thin, Resizable, or Dialog Frame"));
@@ -144,8 +153,9 @@ BOOL CPage5::OnInitDialog()
 	pProp->AddOption(_T("Resizable"));
 	pProp->AddOption(_T("Dialog Frame"));
 	pProp->AllowEdit(FALSE);
-
+	
 	apGroup1->AddSubItem(pProp);
+
 	apGroup1->AddSubItem(new CMFCPropertyGridProperty(_T("Caption"), (COleVariant) _T("About NewControlsDemo"), _T("Specifies the text that will be displayed in the dialog's title bar")));
 
 	m_wndPropList.AddProperty(apGroup1.release());
@@ -159,7 +169,7 @@ BOOL CPage5::OnInitDialog()
 	pProp = new CBoundedNumberSubProp( _T("Width"), (COleVariant) 150l, 0, 200, _T("Specifies the dialog's width"));
 	pProp->EnableSpinControl(TRUE, 0, 200);
 	apSize->AddSubItem(pProp);
-
+	
 	m_wndPropList.AddProperty(apSize.release());
 
 	pGroupFont = new CMFCPropertyGridProperty(_T("Font"));
@@ -249,6 +259,11 @@ BOOL CPage5::OnInitDialog()
 	apGroup5->AddSubItem(new CCustomDlgProp(_T("Custom Dialog"), _T("value")));
 
 	m_wndPropList.AddProperty(apGroup5.release());
+	
+	auto nCount = m_wndPropList.GetTotalPropertyCount();
+	m_vec_BoolValues.resize(nCount);
+	m_vec_IntValues.resize(nCount);
+	m_vec_String_values.resize(nCount);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -413,8 +428,182 @@ void CPage5::OnMarkChanged()
 void CPage5::OnHideFontProps()
 {
 	UpdateData();
-
 	ASSERT_VALID(pGroupFont);
 	pGroupFont->Show(!m_bHideFontProps);
+}
+#include <future>
+#include <regex>
+LRESULT CPage5::OnPropertyChanged(__in WPARAM wparam, __in LPARAM lparam)
+{
+	// pProp will have all the variables and info of the active or change property
+	CMFCPropertyGridProperty* pProp = (CMFCPropertyGridProperty*)lparam;
+	
+	CString str = pProp->GetName(); // get the change property name.
+	COleVariant i = pProp->GetValue();// get the change value.
+	auto idx = pProp->GetData();
+	//below is the code to change COleVariant to other variable type
+	LPVARIANT pVar = (LPVARIANT)i;
+	int x;
+	short y;
+	double d;
+	float f;
+	bool status;
+	CString str1;
+	switch (pVar->vt)
+	{
+	case VT_I2:    // short
+		y = pVar->iVal;
+		break;
+	case VT_I4:     // int
+		x = pVar->lVal;
+		break;
+	case VT_R4:    // float
+		f = pVar->fltVal;
+		break;
+	case VT_R8:    // double
+		d = pVar->dblVal;
+		break;
+	case VT_INT:
+		x = pVar->lVal;
+		m_vec_IntValues.at(idx) = x;
+		break;
+	case VT_BOOL:
+		status = pVar->boolVal;
+		m_vec_BoolValues.at(idx) = status;
+		break;
+	case VT_BSTR:
+		str1 = pVar->bstrVal;
+		m_vec_String_values.at(idx) = str1;
+		break;
+		// etc.
+	}
+
+	return 0;
+}
+
+LRESULT CPage5::OnSearchProprtyReceived(WPARAM wparam, LPARAM lparam)
+{
+	m_wndPropList.SetAlphabeticMode(TRUE);
+
+	auto nCount = m_wndPropList.GetPropertyCount();
+	for (int i = 0; i < nCount; i++)
+	{
+		auto pp = m_wndPropList.GetProperty(i);
+		auto nSub_count = pp->GetSubItemsCount();
+		for (int i = 0; i < nSub_count; i++)
+		{
+			auto pSub = pp->GetSubItem(i);
+			pSub->Show(FALSE);
+		}
+	}
+
+	for each(auto idx in m_vecPropertySearchResults)
+	{
+		auto pp = m_wndPropList.FindItemByData(idx);
+		if (pp)
+			pp->Show(TRUE);
+	}
+	
+	m_wndPropList.RedrawWindow();
+	return TRUE;
+}
+
+
+
+void CPage5::OnEnChangeEditSearchProp()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CMFCPropertyPage::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+
+	CString sSearch_val;
+	m_editSearchProp.GetWindowText(sSearch_val);
+
+	std::async(std::launch::async, [=]()
+	{
+		m_vecPropertySearchResults.clear();
+		std::smatch what;
+
+		m_wndPropList.GetMatchedProperties(sSearch_val, m_vecPropertySearchResults);
+		::PostMessage(this->m_hWnd, WM_ON_SEARCH_PROPRTY_RECEIVED, 0, 0);
+	});
+
+}
+
+
+void CPage5::OnEnUpdateEditSearchProp()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CMFCPropertyPage::OnInitDialog()
+	// function to send the EM_SETEVENTMASK message to the control
+	// with the ENM_UPDATE flag ORed into the lParam mask.
+
+	// TODO:  Add your control notification handler code here
+	int i = 0;
+}
+
+bool CMFCPropertyGridCtrlMine::GetMatchedProperties(const char* s_pattern, std::vector<int>& vecMatched_props)
+{
+	bool bRet = false;
+	CString sSearch_val_pattern;
+	sSearch_val_pattern.Format(".*%s.*", s_pattern);
+	vecMatched_props.clear();
+
+	vecMatched_props.clear();
+	std::smatch what;
+
+	std::regex base_regex(sSearch_val_pattern);
+	for each(auto el in m_vecAllAttributes)
+	{
+		auto sAtt = std::get<0>(el);
+		auto nId = std::get<1>(el);
+		if (std::regex_match(sAtt, what, base_regex))
+		{
+			vecMatched_props.push_back(nId);
+			bRet = true;
+		}
+	}
+	
+	return bRet;
+}
+
+int CMFCPropertyGridCtrlMine::GetTotalPropertyCount() const
+{
+	return m_vecAllAttributes.size();
+}
+
+CMFCPropertyGridCtrlMine::CMFCPropertyGridCtrlMine()
+{
+	_idx = 0;
+}
+
+int CMFCPropertyGridCtrlMine::AddProperty(CMFCPropertyGridProperty* pProp, BOOL bRedraw /*= TRUE*/, BOOL bAdjustLayout /*= TRUE*/)
+{
+	if (!pProp)
+		return 0;
+	
+	std::string s_lower_name((LPCTSTR)pProp->GetName());
+	std::transform(s_lower_name.begin(), s_lower_name.end(), s_lower_name.begin(), ::tolower);
+	pProp->SetData(_idx++); 
+	
+	m_vecAllAttributes.push_back(std::make_tuple(s_lower_name, pProp->GetData()));
+
+	auto nCount = pProp->GetSubItemsCount();
+	for (int i = 0; i < nCount; i++)
+	{
+		auto pSub = pProp->GetSubItem(i);
+		if (pSub)
+		{
+			std::string s_lower_name((LPCTSTR)pSub->GetName());
+			std::transform(s_lower_name.begin(), s_lower_name.end(), s_lower_name.begin(), ::tolower);
+			pSub->SetData(_idx++);
+			m_vecAllAttributes.push_back(std::make_tuple(s_lower_name, pSub->GetData()));
+		}
+	}
+
+	return __super::AddProperty(pProp);
 }
 

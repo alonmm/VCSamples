@@ -8,7 +8,8 @@
 // Microsoft Foundation Classes product.
 
 #pragma once
-
+#include <vector>
+#include "afxwin.h"
 class CMyListCtrl : public CMFCListCtrl
 {
 	virtual COLORREF OnGetCellTextColor(int nRow, int nColum);
@@ -22,8 +23,57 @@ public:
 	BOOL m_bModifyFont;
 };
 
+class getPropValue
+{
+public:
+	getPropValue(CMFCPropertyGridProperty* pProp) :m_pProp(pProp) {};
+	operator CString()        { return (LPCTSTR)(_bstr_t)m_pProp->GetValue(); }
+	operator int()            { return m_pProp->GetValue().iVal; }
+	operator unsigned int()   { return (unsigned int)m_pProp->GetValue().iVal; }
+	operator double()         { return m_pProp->GetValue().dblVal; }
+	operator bool()           { return m_pProp->GetValue().boolVal == VARIANT_TRUE; }
+private:
+	CMFCPropertyGridProperty* m_pProp;
+};
+
 /////////////////////////////////////////////////////////////////////////////
 // CPage5 dialog
+enum EnumFields
+{
+	eApp_name,
+	eDatabase,
+	eVersion,
+	eInterval,
+	eMax
+};
+
+class CMFCPropertyGridCtrlMine : public CMFCPropertyGridCtrl
+{
+public:
+	// Group constructor
+	CMFCPropertyGridCtrlMine();
+	int AddProperty(CMFCPropertyGridProperty* pProp, BOOL bRedraw = TRUE, BOOL bAdjustLayout = TRUE);
+	bool GetMatchedProperties(const char* s_pattern, std::vector<int>& vecMatched_props);
+	int GetTotalPropertyCount() const;
+
+private:
+	std::vector<std::tuple<std::string, int>> m_vecAllAttributes;
+	std::vector<int> m_vecPropertySearchResults;
+	int _idx;
+};
+class CMFCPropertyGridPropertyMine : public CMFCPropertyGridProperty
+{
+	// Construction
+public:
+	// Group constructor
+	CMFCPropertyGridPropertyMine(const CString& strGroupName, DWORD_PTR dwData = 0, BOOL bIsValueList = FALSE);
+
+	// Simple property
+	CMFCPropertyGridPropertyMine(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = NULL, DWORD_PTR dwData = 0,
+		LPCTSTR lpszEditMask = NULL, LPCTSTR lpszEditTemplate = NULL, LPCTSTR lpszValidChars = NULL);
+
+	//virtual HBRUSH OnCtlColor(CDC* pDC, UINT nCtlColor);
+};
 
 class CPage5 : public CMFCPropertyPage
 {
@@ -74,12 +124,22 @@ protected:
 	afx_msg void OnResetValues();
 	afx_msg void OnMarkChanged();
 	afx_msg void OnHideFontProps();
+	afx_msg LRESULT OnPropertyChanged(__in WPARAM wparam, __in LPARAM lparam);
+	afx_msg LRESULT OnSearchProprtyReceived(WPARAM wparam, LPARAM lparam);
 
 	DECLARE_MESSAGE_MAP()
 
-	CMFCPropertyGridCtrl m_wndPropList;
+	CMFCPropertyGridCtrlMine m_wndPropList;
 	CImageList m_imageList;
 
 	CMFCPropertyGridProperty* pGroupFont;
+	std::vector<int> m_vecPropertySearchResults;
+	std::vector<bool> m_vec_BoolValues;
+	std::vector<int> m_vec_IntValues;
+	std::vector<CString> m_vec_String_values;
+public:
+	CEdit m_editSearchProp;
+	afx_msg void OnEnChangeEditSearchProp();
+	afx_msg void OnEnUpdateEditSearchProp();
 };
 

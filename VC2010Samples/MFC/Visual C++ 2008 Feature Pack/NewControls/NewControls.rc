@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -82,12 +80,11 @@ FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
     LTEXT           "NewControls Application Version 1.0",IDC_STATIC,40,10,119,8
-    LTEXT           "© 2007 - 2008 Microsoft Corporation.  All rights reserved.",
-                    IDC_STATIC,40,25,122,19
+    LTEXT           "© 2007 - 2008 Microsoft Corporation.  All rights reserved.",IDC_STATIC,40,25,122,19
     DEFPUSHBUTTON   "OK",IDOK,176,6,32,14,WS_GROUP
 END
 
-IDD_PAGE1 DIALOG  0, 0, 309, 228
+IDD_PAGE1 DIALOG 0, 0, 309, 228
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "Buttons"
 FONT 8, "MS Sans Serif"
@@ -122,7 +119,7 @@ BEGIN
     PUSHBUTTON      "This is a multi-line button\nYou can add some text\nlines here...",IDC_BUTTON_MULTLINE,191,166,96,32
 END
 
-IDD_PAGE2 DIALOG  0, 0, 309, 190
+IDD_PAGE2 DIALOG 0, 0, 309, 190
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "Color Controls"
 FONT 8, "MS Sans Serif"
@@ -171,7 +168,7 @@ BEGIN
     LTEXT           "Custom: ",IDC_STATIC,173,189,28,8
 END
 
-IDD_PAGE4 DIALOG  0, 0, 309, 190
+IDD_PAGE4 DIALOG 0, 0, 309, 190
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "Masked Edit"
 FONT 8, "MS Sans Serif"
@@ -194,10 +191,10 @@ BEGIN
     EDITTEXT        IDC_VALUE5,142,134,94,14,ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_PAGE5 DIALOG  0, 0, 309, 243
+IDD_PAGE5 DIALOGEX 0, 0, 309, 243
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "List Controls"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     LTEXT           "CMFCListCtrl:",IDC_STATIC,7,7,43,8
     CONTROL         "List1",IDC_LIST1,"SysListView32",LVS_REPORT | WS_BORDER | WS_TABSTOP,7,20,132,140
@@ -216,9 +213,10 @@ BEGIN
     CONTROL         "Mar&k Changed",IDC_MARK_CHANGED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,157,210,63,10
     PUSHBUTTON      "R&eset Values",IDC_RESET_VALUES,222,208,51,14
     CONTROL         "Hide Fon&t Properties",IDC_HIDE_FONT_PROPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,157,226,80,10
+    EDITTEXT        IDC_EDIT_SEARCH_PROP,7,214,121,14,ES_AUTOHSCROLL
 END
 
-IDD_PAGE6 DIALOG  0, 0, 309, 217
+IDD_PAGE6 DIALOG 0, 0, 309, 217
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "Shell Controls"
 FONT 8, "MS Sans Serif"
@@ -229,7 +227,7 @@ BEGIN
     PUSHBUTTON      "Select &Folder...",IDC_SELECT_FOLDER,184,20,60,14
     LTEXT           "CMFCShellListCtrl:",IDC_STATIC,6,102,63,8
     CONTROL         "List1",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,6,113,296,95
-    EDITTEXT        IDC_SELECTED_FOLDER,184,40,111,48, ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL
+    EDITTEXT        IDC_SELECTED_FOLDER,184,40,111,48,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
 END
 
 
@@ -277,7 +275,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_PAGE1, DIALOG
     BEGIN
@@ -401,7 +399,7 @@ IDC_CURSOR              CURSOR                  "res\\Btn.cur"
 // Menu
 //
 
-IDR_MENU1 MENU 
+IDR_MENU1 MENU
 BEGIN
     POPUP "Dummy"
     BEGIN
@@ -412,7 +410,7 @@ BEGIN
     END
 END
 
-IDR_DIALOG_MENU MENU 
+IDR_DIALOG_MENU MENU
 BEGIN
     POPUP "Dummy"
     BEGIN
@@ -465,7 +463,7 @@ END
 // Toolbar
 //
 
-IDR_TOOLBAR_MENU_IMAGES TOOLBAR  16, 15
+IDR_TOOLBAR_MENU_IMAGES TOOLBAR 16, 15
 BEGIN
     BUTTON      ID_DIALOG_ABOUT
     BUTTON      ID_ITEM_1
@@ -477,18 +475,18 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_ABOUTBOX            "&About NewControls..."
     IDS_CAPTION             "NewControls"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     AFX_IDS_APP_TITLE       "NewControls Example"
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -516,5 +514,4 @@ LANGUAGE 9, 1
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
-
 
